@@ -1,12 +1,13 @@
 [package]
 name = "mathml"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Jose Luis Ricon <jose@ricon.xyz>"]
 edition = "2018"
 description = "A parser for MathML"
 license = "MIT OR Apache-2.0"
 documentation="https://docs.rs/mathml/"
 repository="https://github.com/jlricon/mathml"
+categories=["parser-implementations","parsing","science","mathematics","simulation"]
 readme="README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

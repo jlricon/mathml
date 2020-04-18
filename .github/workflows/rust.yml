@@ -20,6 +20,6 @@ jobs:
         run: cargo test --verbose
       - name: Code coverage
         uses: codecov/codecov-action@v1
-          with:
-            file: ./coverage.xml # optional
-            fail_ci_if_error: true # optional (default = false)
+        with:
+          file: ./coverage.xml # optional
+          fail_ci_if_error: true # optional (default = false)

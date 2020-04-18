@@ -20,7 +20,9 @@ fn replace_one(from: String, to: &'static str) -> impl Fn(String) -> String + 's
 /// This function exists because the underlying XML parser will crash with certain &tag; expressions
 /// We just replace them with $FIXED_tag as text
 pub fn sanitize_xml(x: &str) -> String {
-    let replacer = replace! {tau};
+    let replacer = replace! {tau,alpha,beta,gamma,
+    delta,epsilon,zeta,eta,theta,iota,kappa,lambda,mu,nu,xi,
+    omicron,pi,rho,sigma,upsilon,phi,chi,psi,omega};
     replacer(x.to_owned())
 }
 #[cfg(test)]

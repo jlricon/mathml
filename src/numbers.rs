@@ -12,6 +12,7 @@ pub enum NumType {
     ComplexCartesian(f64, f64),
     ComplexPolar(f64, f64),
     Constant(String),
+    ENotation(f64, i64),
 }
 impl Eq for NumType {}
 impl PartialEq for NumType {
@@ -26,6 +27,7 @@ impl PartialEq for NumType {
                 approx::abs_diff_eq!(a, c) && approx::abs_diff_eq!(b, d)
             }
             (Constant(a), Constant(b)) => a == b,
+            (ENotation(a, b), ENotation(c, d)) => a == c && b == d,
             _ => false,
         }
     }
@@ -36,6 +38,30 @@ fn parse_and_trim_int(node: Node, base: u32) -> Result<i64, ParseIntError> {
 }
 fn parse_and_trim_float(node: Node) -> Result<f64, ParseFloatError> {
     node.text().unwrap().trim().parse()
+}
+fn extract_enotation(node: Node) -> Result<(f64, i64), Box<dyn std::error::Error>> {
+    // We can either have 1 child (SBML) or 3 children (MathML)
+    let children_count = node.children().count();
+    match children_count {
+        3 => extract_float_int_children(node),
+        1 => {
+            let first_child: Vec<String> = node
+                .first_child()
+                .unwrap()
+                .text()
+                .unwrap()
+                .to_lowercase()
+                .split("e")
+                .map(|e| e.trim().to_owned())
+                .collect();
+
+            let exponent: f64 = first_child[0].parse().unwrap();
+            let mantissa: i64 = first_child[1].parse().unwrap();
+            Ok((exponent, mantissa))
+        }
+
+        _ => panic!("We can only ever have 3 or 1 children"),
+    }
 }
 pub(crate) fn node_to_cn(node: Node) -> MathNode {
     // TODO: make static
@@ -69,6 +95,11 @@ pub(crate) fn node_to_cn(node: Node) -> MathNode {
                 .trim()
                 .to_owned(),
         ),
+        // This one can either be number <sep> number or just 2e-5 for SBML, we will support both
+        "e-notation" => {
+            let (a, b) = extract_enotation(node).unwrap();
+            NumType::ENotation(a, b)
+        }
         _ => panic!("Unhandled number type"),
     };
 
@@ -109,9 +140,14 @@ pub(crate) fn node_to_cn(node: Node) -> MathNode {
     }
 }
 
-fn extract_float_children(node: Node) -> Result<(f64, f64), ParseFloatError> {
+fn extract_float_children(node: Node) -> Result<(f64, f64), Box<dyn std::error::Error>> {
     let child1 = parse_and_trim_float(node.first_child().unwrap())?;
     let child2 = parse_and_trim_float(node.children().nth_back(0).unwrap())?;
+    Ok((child1, child2))
+}
+fn extract_float_int_children(node: Node) -> Result<(f64, i64), Box<dyn std::error::Error>> {
+    let child1 = parse_and_trim_float(node.first_child().unwrap())?;
+    let child2 = parse_and_trim_int(node.children().nth_back(0).unwrap(), 10)?;
     Ok((child1, child2))
 }
 #[cfg(test)]
@@ -123,5 +159,24 @@ mod test {
         assert_eq!(Constant("t".to_string()), Constant("t".to_string()));
         assert_eq!(Real(1212.212), Real(1212.212));
         assert_eq!(Integer(12), Integer(12))
+    }
+    #[test]
+    fn test_number_e() {
+        use super::node_to_cn;
+        use super::MathNode::*;
+        use super::NumType::*;
+        let test = r#"<cn type="e-notation"> 2e-5 </cn>"#;
+        let parsed = roxmltree::Document::parse(test).unwrap();
+        let ret = node_to_cn(parsed.root().first_child().unwrap());
+        assert_eq!(
+            ret,
+            Cn {
+                num_type: ENotation(2.0, -5,),
+                base: 10,
+                definition_url: None,
+                encoding: None,
+                attributes: None,
+            }
+        )
     }
 }

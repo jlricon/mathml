@@ -3,7 +3,10 @@ name = "mathml"
 version = "0.1.0"
 authors = ["Jose Luis Ricon <jose@ricon.xyz>"]
 edition = "2018"
-
+description = "A parser for MathML"
+license = "MIT OR Apache-2.0"
+documentation="https://docs.rs/mathml/"
+repository="https://github.com/jlricon/mathml"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

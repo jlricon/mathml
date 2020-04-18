@@ -1,18 +1,15 @@
-#![allow(dead_code)]
+pub use regexes::sanitize_xml;
 use roxmltree;
 use roxmltree::Node;
 use roxmltree::NodeType;
 use serde_derive::{Deserialize, Serialize};
 use serde_plain;
-
 mod numbers;
 mod regexes;
-#[macro_use]
-extern crate approx;
-type Op = String;
+
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq)]
 #[allow(non_camel_case_types)]
-enum BuiltinOp {
+pub enum BuiltinOp {
     factorial,
     minus,
     abs,
@@ -103,7 +100,7 @@ enum BuiltinOp {
 }
 
 #[derive(Debug, Serialize, Eq, PartialEq)]
-enum MathNode {
+pub enum MathNode {
     Apply(Vec<MathNode>),
     Op(BuiltinOp),
     Text(String),
@@ -120,6 +117,8 @@ enum MathNode {
         definition_url: Option<String>,
         encoding: Option<String>,
     },
+    Comment(String),
+    PI(String, Option<String>),
 }
 
 fn has_text(math_node: &MathNode) -> bool {
@@ -153,20 +152,23 @@ fn parse_element_type(node: Node) -> MathNode {
         }
     };
 }
-fn parse_node(node: Node) -> MathNode {
+/// Parse a single xml node into a MathML node
+
+pub fn parse_node(node: Node) -> MathNode {
     match node.node_type() {
         NodeType::Text => MathNode::Text(node.text().unwrap().trim().to_owned()),
         NodeType::Element if node.tag_name().name() == "math" => MathNode::Root(map_children(node)),
         NodeType::Root => parse_node(node.first_child().unwrap()),
         NodeType::Element => parse_element_type(node),
-        NodeType::PI => panic!(),
-        NodeType::Comment => {
-            dbg!(node.tag_name());
-            panic!()
-        }
+        NodeType::PI => MathNode::PI(
+            node.pi().unwrap().target.to_owned(),
+            node.pi().unwrap().value.map(|m| m.to_owned()),
+        ),
+        NodeType::Comment => MathNode::Comment(node.text().unwrap().to_owned()),
     }
 }
-fn parse_document(text: &str) -> Result<MathNode, roxmltree::Error> {
+/// Parse a string into a MathML node
+pub fn parse_document(text: &str) -> Result<MathNode, roxmltree::Error> {
     let sanitized = regexes::sanitize_xml(text);
     let xml = roxmltree::Document::parse(&sanitized)?;
 
@@ -230,6 +232,6 @@ mod test {
                     <cn type="constant">  &tau; </cn>
                     </math>
                     "#;
-        let parsed = parse_document(test).unwrap();
+        parse_document(test).unwrap();
     }
 }

@@ -2,10 +2,9 @@ use super::MathNode;
 use roxmltree::Node;
 use serde_derive::{Deserialize, Serialize};
 use std::num::{ParseFloatError, ParseIntError};
-use std::string::ParseError;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub(crate) enum NumType {
+pub enum NumType {
     Real(f64),
     Integer(i64),
     Rational(i64, i64),
@@ -20,16 +19,17 @@ impl PartialEq for NumType {
         match (self, other) {
             (Real(r), Real(r2)) => approx::abs_diff_eq!(r, r2),
             (Integer(r1), Integer(r2)) => r1 == r2,
-            (Rational(a, b), Rational(c, d)) => a == c && b == d,
+            (Rational(a, b), Rational(c, d)) => (a == c) && (b == d),
             (ComplexPolar(a, b), ComplexPolar(c, d))
             | (ComplexCartesian(a, b), ComplexCartesian(c, d)) => {
-                approx::abs_diff_eq!(a, c) && approx::abs_diff_eq!(b, c)
+                approx::abs_diff_eq!(a, c) && approx::abs_diff_eq!(b, d)
             }
             (Constant(a), Constant(b)) => a == b,
             _ => false,
         }
     }
 }
+
 fn parse_and_trim_int(node: Node, base: u32) -> Result<i64, ParseIntError> {
     i64::from_str_radix(node.text().unwrap().trim(), base)
 }

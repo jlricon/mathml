@@ -74,13 +74,11 @@ pub(crate) fn node_to_cn(node: Node) -> MathNode {
 
     let encoding = node.attribute("encoding").map(|p| p.parse().unwrap());
     let definition_url = node.attribute("definitionUrl").map(|p| p.parse().unwrap());
-    dbg!(node.attributes());
 
     let attributes: HashMap<String, String> = node
         .attributes()
         .iter()
         .filter(|n| {
-            dbg!(n.namespace());
             if ignore_attrs.contains(n.name()) & n.namespace().is_none() {
                 false
             } else {

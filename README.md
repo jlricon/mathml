@@ -1,6 +1,7 @@
 [![Crates.io](https://img.shields.io/crates/v/mathml.svg)](https://crates.io/crates/mathml)
 [![Documentation](https://docs.rs/mathml/badge.svg)](https://docs.rs/mathml/)
 [![Build](https://github.com/jlricon/mathml/workflows/Build/badge.svg)](https://github.com/jlricon/mathml)
+[![Codecov](https://codecov.io/github/jlricon/mathml/coverage.svg?branch=master)](https://codecov.io/gh/jlricon/mathml)
 # Mathml parser
 This implements a parser for the MathML spec https://www.w3.org/TR/2003/REC-MathML2-20031021/chapter4.html
 At the moment only content markup is implemented 

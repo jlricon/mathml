@@ -137,7 +137,7 @@ fn parse_element_type(node: Node) -> MathNode {
     if let Ok(op) = maybe_op {
         return MathNode::Op(op);
     }
-    return match tag_name {
+    match tag_name {
         "apply" => MathNode::Apply(map_children(node)),
         "ci" => MathNode::Ci(map_children(node)),
         "cn" => numbers::node_to_cn(node),
@@ -150,7 +150,7 @@ fn parse_element_type(node: Node) -> MathNode {
             dbg!(node);
             panic!()
         }
-    };
+    }
 }
 /// Parse a single xml node into a MathML node
 

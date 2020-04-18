@@ -15,9 +15,10 @@ macro_rules! replace {
 
 }
 fn replace_one(from: String, to: &'static str) -> impl Fn(String) -> String + 'static {
-    move |x: String| x.replace(&from, to)
+    move |x: String| x.replace(&from, format!("$FIXED_{}", to).as_ref())
 }
-
+/// This function exists because the underlying XML parser will crash with certain &tag; expressions
+/// We just replace them with $FIXED_tag as text
 pub fn sanitize_xml(x: &str) -> String {
     let replacer = replace! {tau};
     replacer(x.to_owned())
@@ -30,6 +31,10 @@ mod test {
         let test = r#"<cn type="constant">  &tau;&bla; </cn>"#;
         let replacer = replace! {tau,bla};
         let output = replacer(test.to_owned());
-        assert_eq!(output, test.replace("&tau;", "tau").replace("&bla;", "bla"))
+        assert_eq!(
+            output,
+            test.replace("&tau;", "$FIXED_tau")
+                .replace("&bla;", "$FIXED_bla")
+        )
     }
 }

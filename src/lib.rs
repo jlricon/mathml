@@ -180,6 +180,8 @@ pub fn parse_document(text: &str) -> Result<MathNode, roxmltree::Error> {
 mod test {
     use super::MathNode::*;
     use super::*;
+    use crate::numbers::NumType;
+
     #[test]
     fn test_simple_parsing() {
         let test = r#"<math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -233,5 +235,19 @@ mod test {
                     </math>
                     "#;
         parse_document(test).unwrap();
+    }
+    #[test]
+    fn test_tau() {
+        let test = r#"<cn type="constant">  &tau; </cn>"#;
+        let parsed = parse_document(test).unwrap();
+        assert_eq!(
+            parsed,
+            Cn {
+                num_type: NumType::Constant("$FIXED_tau".to_string()),
+                base: 10,
+                definition_url: None,
+                encoding: None
+            }
+        )
     }
 }

@@ -84,6 +84,7 @@ fn extract_float_children(node: Node) -> Result<(f64, f64), ParseFloatError> {
 }
 #[cfg(test)]
 mod test {
+
     #[test]
     fn test_number_eq() {
         use super::NumType::*;

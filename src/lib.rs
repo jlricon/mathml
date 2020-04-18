@@ -4,6 +4,8 @@ use roxmltree::Node;
 use roxmltree::NodeType;
 use serde_derive::{Deserialize, Serialize};
 use serde_plain;
+use std::collections::HashMap;
+
 mod numbers;
 mod regexes;
 
@@ -97,6 +99,13 @@ pub enum BuiltinOp {
     partialdiff,
     forall,
     exists,
+    eq,
+    neq,
+    gt,
+    lt,
+    geq,
+    leq,
+    root,
 }
 
 #[derive(Debug, Serialize, Eq, PartialEq)]
@@ -116,6 +125,7 @@ pub enum MathNode {
         base: u32,
         definition_url: Option<String>,
         encoding: Option<String>,
+        attributes: Option<HashMap<String, String>>,
     },
     Comment(String),
     PI(String, Option<String>),
@@ -246,8 +256,64 @@ mod test {
                 num_type: NumType::Constant("$FIXED_tau".to_string()),
                 base: 10,
                 definition_url: None,
-                encoding: None
+                encoding: None,
+                attributes: None
             }
         )
+    }
+    #[test]
+    fn test_sbml_attrs() {
+        use BuiltinOp::*;
+        use NumType::*;
+        let test = r#"                <math xmlns="http://www.w3.org/1998/Math/MathML" 
+                    xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
+                    <apply>
+                        <and/>
+                        <apply>
+                            <lt/>
+                            <cn sbml:units="mole"> 1 </cn>
+                            <ci> S1 </ci>
+                        </apply>
+                        <apply>
+                            <lt/>
+                            <ci> S1 </ci>
+                            <cn sbml:units="mole"> 100 </cn>
+                        </apply>
+                    </apply>
+                </math>"#;
+        let xml = roxmltree::Document::parse(&test).unwrap();
+        let parsed: MathNode = parse_node(xml.root());
+        let units: HashMap<String, String> = vec![(
+            "http://www.sbml.org/sbml/level3/version2/core:units".to_owned(),
+            "mole".to_owned(),
+        )]
+        .into_iter()
+        .collect();
+        let expected = Root(vec![Apply(vec![
+            Op(and),
+            Apply(vec![
+                Op(lt),
+                Cn {
+                    num_type: Real(1.0),
+                    base: 10,
+                    definition_url: None,
+                    encoding: None,
+                    attributes: Some(units.clone()),
+                },
+                Ci(vec![Text("S1".to_owned())]),
+            ]),
+            Apply(vec![
+                Op(lt),
+                Ci(vec![Text("S1".to_owned())]),
+                Cn {
+                    num_type: Real(100.0),
+                    base: 10,
+                    definition_url: None,
+                    encoding: None,
+                    attributes: Some(units),
+                },
+            ]),
+        ])]);
+        assert_eq!(expected, parsed);
     }
 }

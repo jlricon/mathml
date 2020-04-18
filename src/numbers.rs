@@ -1,6 +1,7 @@
 use super::MathNode;
 use roxmltree::Node;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 use std::num::{ParseFloatError, ParseIntError};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -37,9 +38,13 @@ fn parse_and_trim_float(node: Node) -> Result<f64, ParseFloatError> {
     node.text().unwrap().trim().parse()
 }
 pub(crate) fn node_to_cn(node: Node) -> MathNode {
+    // TODO: make static
+    let ignore_attrs: HashSet<&str> = vec!["type", "base", "encoding", "definitionUrl", "units"]
+        .into_iter()
+        .collect();
     let num_type_str = node.attribute("type").unwrap_or("real");
     let base: u32 = node.attribute("base").unwrap_or("10").parse().unwrap();
-    dbg!(node);
+
     let num_type = match num_type_str {
         "real" => NumType::Real(node.text().unwrap().trim().parse().unwrap()),
         "integer" => NumType::Integer(parse_and_trim_int(node, base).unwrap()),
@@ -69,11 +74,40 @@ pub(crate) fn node_to_cn(node: Node) -> MathNode {
 
     let encoding = node.attribute("encoding").map(|p| p.parse().unwrap());
     let definition_url = node.attribute("definitionUrl").map(|p| p.parse().unwrap());
+    dbg!(node.attributes());
+
+    let attributes: HashMap<String, String> = node
+        .attributes()
+        .iter()
+        .filter(|n| {
+            dbg!(n.namespace());
+            if ignore_attrs.contains(n.name()) & n.namespace().is_none() {
+                false
+            } else {
+                true
+            }
+        })
+        .map(|a| {
+            (
+                format!(
+                    "{}:{}",
+                    a.namespace().unwrap().to_owned(),
+                    a.name().to_owned()
+                ),
+                a.value().to_owned(),
+            )
+        })
+        .collect();
     MathNode::Cn {
         num_type,
         base,
         definition_url,
         encoding,
+        attributes: if attributes.is_empty() {
+            None
+        } else {
+            Some(attributes)
+        },
     }
 }
 

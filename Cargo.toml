@@ -1,0 +1,14 @@
+[package]
+name = "mathml"
+version = "0.1.0"
+authors = ["Jose Luis Ricon <jose@ricon.xyz>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+roxmltree = "0.10.1"
+serde = "1.0.106"
+serde_derive = "1.0.106"
+serde_plain = "0.3.0"
+approx = "0.3.2"

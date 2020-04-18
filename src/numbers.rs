@@ -168,15 +168,17 @@ mod test {
         let test = r#"<cn type="e-notation"> 2e-5 </cn>"#;
         let parsed = roxmltree::Document::parse(test).unwrap();
         let ret = node_to_cn(parsed.root().first_child().unwrap());
-        assert_eq!(
-            ret,
-            Cn {
-                num_type: ENotation(2.0, -5,),
-                base: 10,
-                definition_url: None,
-                encoding: None,
-                attributes: None,
-            }
-        )
+        let expected = Cn {
+            num_type: ENotation(2.0, -5),
+            base: 10,
+            definition_url: None,
+            encoding: None,
+            attributes: None,
+        };
+        assert_eq!(ret, expected);
+        let test = r#"<cn type="e-notation"> 2 <sep/> -5 </cn>"#;
+        let parsed = roxmltree::Document::parse(test).unwrap();
+        let ret = node_to_cn(parsed.root().first_child().unwrap());
+        assert_eq!(ret, expected);
     }
 }

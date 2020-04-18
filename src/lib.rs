@@ -1,3 +1,4 @@
+pub use numbers::NumType;
 pub use regexes::sanitize_xml;
 use roxmltree;
 use roxmltree::Node;
@@ -5,7 +6,6 @@ use roxmltree::NodeType;
 use serde_derive::{Deserialize, Serialize};
 use serde_plain;
 use std::collections::HashMap;
-
 mod numbers;
 mod regexes;
 

@@ -82,3 +82,13 @@ fn extract_float_children(node: Node) -> Result<(f64, f64), ParseFloatError> {
     let child2 = parse_and_trim_float(node.children().nth_back(0).unwrap())?;
     Ok((child1, child2))
 }
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_number_eq() {
+        use super::NumType::*;
+        assert_eq!(Constant("t".to_string()), Constant("t".to_string()));
+        assert_eq!(Real(1212.212), Real(1212.212));
+        assert_eq!(Integer(12), Integer(12))
+    }
+}
